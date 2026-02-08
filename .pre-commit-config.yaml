@@ -2,20 +2,20 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:
-      - id: ruff
-        args: [--fix]
       - id: ruff-format
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
+      - id: ruff
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: []
-  - repo: https://github.com/pytest-dev/pytest
-    rev: 8.3.3
+        args: [.]
+        pass_filenames: false
+
+  - repo: local
     hooks:
-      - id: pytest
-        additional_dependencies: []
+      - id: pytest-q
+        name: pytest -q
+        entry: uv run pytest -q
+        language: system
+        pass_filenames: false
