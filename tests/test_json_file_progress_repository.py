@@ -7,6 +7,7 @@ import json
 from python_learning_orchestrated.adapters.json_file_progress_repository import (
     JsonFileProgressRepository,
 )
+from python_learning_orchestrated.domain.progress import LessonProgress
 
 
 def test_get_progress_missing_file_returns_empty(tmp_path) -> None:
@@ -49,9 +50,8 @@ def test_atomic_save_results_in_valid_json_file(tmp_path) -> None:
     repository.save_progress(
         "user-1", {"lesson_id": "variables", "status": "completed"}
     )
-    repository.save_progress(
-        "user-2", {"lesson_id": "loops", "status": "completed"}
-    )
+    user_2_progress: LessonProgress = {"lesson_id": "loops", "status": "completed"}
+    repository.save_progress("user-2", user_2_progress)
 
     parsed = json.loads(progress_file.read_text(encoding="utf-8"))
     assert parsed["user-1"]["lesson_id"] == "variables"
