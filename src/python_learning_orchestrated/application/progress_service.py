@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from python_learning_orchestrated.domain.progress import LessonProgress
 from python_learning_orchestrated.ports.progress_repository import ProgressRepository
 
 
@@ -11,10 +12,10 @@ class ProgressService:
     def __init__(self, repository: ProgressRepository) -> None:
         self._repository = repository
 
-    def get_user_progress(self, user_id: str) -> dict[str, object]:
+    def get_user_progress(self, user_id: str) -> LessonProgress:
         """Return persisted progress for a user."""
         return self._repository.get_progress(user_id)
 
-    def record_user_progress(self, user_id: str, progress: dict[str, object]) -> None:
+    def record_user_progress(self, user_id: str, progress: LessonProgress) -> None:
         """Persist progress data for a user."""
         self._repository.save_progress(user_id, progress)

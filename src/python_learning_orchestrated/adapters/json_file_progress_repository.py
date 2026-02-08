@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+from typing import cast
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from python_learning_orchestrated.domain.progress import LessonProgress
 from python_learning_orchestrated.ports.progress_repository import ProgressRepository
 
 
@@ -17,19 +19,19 @@ class JsonFileProgressRepository(ProgressRepository):
         self._file_path = Path(file_path)
         self._file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def get_progress(self, user_id: str) -> dict[str, object]:
+    def get_progress(self, user_id: str) -> LessonProgress:
         """Return stored progress for user_id, or empty progress."""
         storage = self._load_storage()
         progress = storage.get(user_id, {})
         return progress.copy() if isinstance(progress, dict) else {}
 
-    def save_progress(self, user_id: str, progress: dict[str, object]) -> None:
+    def save_progress(self, user_id: str, progress: LessonProgress) -> None:
         """Persist progress for user_id using an atomic replace."""
         storage = self._load_storage()
         storage[user_id] = progress.copy()
         self._save_storage(storage)
 
-    def _load_storage(self) -> dict[str, dict[str, object]]:
+    def _load_storage(self) -> dict[str, LessonProgress]:
         """Load all persisted progress payloads."""
         if not self._file_path.exists():
             return {}
@@ -43,15 +45,15 @@ class JsonFileProgressRepository(ProgressRepository):
             if not isinstance(data, dict):
                 return {}
 
-            normalized: dict[str, dict[str, object]] = {}
+            normalized: dict[str, LessonProgress] = {}
             for user_id, progress in data.items():
                 if isinstance(user_id, str) and isinstance(progress, dict):
-                    normalized[user_id] = progress
+                    normalized[user_id] = cast(LessonProgress, progress)
             return normalized
         except (json.JSONDecodeError, OSError):
             return {}
 
-    def _save_storage(self, storage: dict[str, dict[str, object]]) -> None:
+    def _save_storage(self, storage: dict[str, LessonProgress]) -> None:
         """Persist the full storage document to disk."""
         temp_path: Path | None = None
         try:
