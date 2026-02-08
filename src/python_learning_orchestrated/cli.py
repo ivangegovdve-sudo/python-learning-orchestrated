@@ -4,20 +4,31 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Callable
+from datetime import datetime
 
+from python_learning_orchestrated.adapters.in_memory_practice_repository import (
+    InMemoryPracticeRepository,
+)
 from python_learning_orchestrated.adapters.in_memory_progress_repository import (
     InMemoryProgressRepository,
+)
+from python_learning_orchestrated.adapters.json_file_practice_repository import (
+    JsonFilePracticeRepository,
 )
 from python_learning_orchestrated.adapters.json_file_progress_repository import (
     JsonFileProgressRepository,
 )
+from python_learning_orchestrated.adapters.stdio_session_io import StdioSessionIO
 from python_learning_orchestrated.application.interactive_ui import (
     InteractiveLearningUI,
     run_interactive_ui_loop,
 )
 from python_learning_orchestrated.application.lesson_runner import LessonRunner
+from python_learning_orchestrated.application.practice_session import RunPracticeSession
 from python_learning_orchestrated.application.progress_service import ProgressService
 from python_learning_orchestrated.domain.learning_path import LearningPath, Lesson
+from python_learning_orchestrated.domain.practice import LearningItem
+from python_learning_orchestrated.ports.practice_repository import PracticeRepository
 from python_learning_orchestrated.ports.progress_repository import ProgressRepository
 
 InputFn = Callable[[], str]
@@ -32,6 +43,19 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         help="Persist user progress in the given JSON file path.",
+    )
+    parser.add_argument(
+        "command",
+        nargs="?",
+        default="interactive",
+        choices=["interactive", "session"],
+        help="Run interactive lesson menu or practice session.",
+    )
+    parser.add_argument(
+        "--session-file",
+        type=str,
+        default=None,
+        help="Persist practice session state in the given JSON file path.",
     )
     return parser
 
@@ -64,6 +88,30 @@ def _build_learning_path() -> LearningPath:
     )
 
 
+def _build_practice_items() -> list[LearningItem]:
+    return [
+        LearningItem(
+            id="variables-review",
+            prompt="What is a variable in Python?",
+            status="new",
+            order=1,
+        ),
+        LearningItem(
+            id="loops-review",
+            prompt="When would you use a for loop?",
+            status="new",
+            order=2,
+        ),
+    ]
+
+
+def _build_practice_repository(session_file: str | None) -> PracticeRepository:
+    seed_items = _build_practice_items()
+    if session_file:
+        return JsonFilePracticeRepository(session_file, seed_items)
+    return InMemoryPracticeRepository(seed_items)
+
+
 def main(
     argv: list[str] | None = None,
     *,
@@ -73,9 +121,18 @@ def main(
     """Run the text-based interactive learning loop."""
     args = _build_parser().parse_args(argv)
 
+    if args.command == "session":
+        repository = _build_practice_repository(args.session_file)
+        io = StdioSessionIO(input_fn=input_fn, output_fn=output_fn)
+        session = RunPracticeSession(
+            repository=repository, io=io, now_provider=datetime.now
+        )
+        session.run()
+        return
+
     user_id = "demo-user"
-    repository = _build_repository(args.progress_file)
-    service = ProgressService(repository)
+    progress_repository = _build_repository(args.progress_file)
+    service = ProgressService(progress_repository)
     learning_path = _build_learning_path()
     runner = LessonRunner(service, learning_path)
     ui = InteractiveLearningUI(user_id, service, runner, learning_path)
