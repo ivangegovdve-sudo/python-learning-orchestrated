@@ -27,4 +27,7 @@ def test_reset_progress_removes_only_target_user() -> None:
     repository.reset_progress("user-1")
 
     assert repository.get_progress("user-1") == {}
-    assert repository.get_progress("user-2") == {"lesson_id": "loops", "completed": False}
+    assert repository.get_progress("user-2") == {
+        "lesson_id": "loops",
+        "completed": False,
+    }

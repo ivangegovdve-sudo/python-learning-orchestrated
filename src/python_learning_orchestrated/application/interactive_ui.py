@@ -92,7 +92,9 @@ def progress_summary(
     """Return completed and total lesson counts for user."""
     completed_ids = _completed_lesson_ids(progress_service, user_id)
     total_count = len(learning_path.lessons)
-    completed_count = sum(1 for lesson in learning_path.lessons if lesson.id in completed_ids)
+    completed_count = sum(
+        1 for lesson in learning_path.lessons if lesson.id in completed_ids
+    )
     return completed_count, total_count
 
 
