@@ -6,13 +6,14 @@ from python_learning_orchestrated.adapters.in_memory_progress_repository import 
     InMemoryProgressRepository,
 )
 from python_learning_orchestrated.application.progress_service import ProgressService
+from python_learning_orchestrated.domain.progress import LessonProgress
 
 
 def test_record_user_progress_delegates_to_repository() -> None:
     """record_user_progress writes payload to injected repository."""
     repository = InMemoryProgressRepository()
     service = ProgressService(repository)
-    progress = {"lesson_id": "variables", "completed": True}
+    progress: LessonProgress = {"lesson_id": "variables", "completed": True}
 
     service.record_user_progress("user-123", progress)
 

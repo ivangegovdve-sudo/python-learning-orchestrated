@@ -20,9 +20,11 @@ class LessonRunner:
     def run_next_lesson(self, user_id: str) -> dict[str, str | None]:
         """Complete the next uncompleted lesson and return its execution status."""
         progress = self._progress_service.get_user_progress(user_id)
-        completed_lessons = progress.get("completed_lessons", [])
+        completed_lessons_value: object = progress.get("completed_lessons", [])
 
-        if not isinstance(completed_lessons, list):
+        if isinstance(completed_lessons_value, list):
+            completed_lessons = completed_lessons_value
+        else:
             completed_lessons = []
 
         completed_lesson_ids = [
