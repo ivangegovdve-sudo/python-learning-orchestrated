@@ -32,7 +32,7 @@ uv run pytest
 
 ```bash
 uv run ruff check .
-uv run black --check .
+uv run ruff format --check .
 ```
 
 ## Typecheck

@@ -182,7 +182,5 @@ def _completed_lesson_ids(progress_service: ProgressService, user_id: str) -> se
         return set()
 
     return {
-        lesson_id
-        for lesson_id in completed_lessons_value
-        if isinstance(lesson_id, str)
+        lesson_id for lesson_id in completed_lessons_value if isinstance(lesson_id, str)
     }
