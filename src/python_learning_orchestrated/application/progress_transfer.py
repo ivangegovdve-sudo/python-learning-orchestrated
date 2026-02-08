@@ -1,4 +1,21 @@
-"""Use-cases for exporting and importing practice progress."""
+"""Use-cases for exporting and importing practice progress.
+
+Stability Contract (frozen):
+- Export returns a `ProgressSnapshot` containing repository items, repository
+  attempts, the injected `now_provider()` timestamp, and the configured version.
+- Import is additive and deterministic: it merges item progress by id, unions
+  attempts by `(item_id, timestamp)`, writes only missing attempt keys, and
+  returns a snapshot that preserves the imported `version` and `exported_at`.
+- Running import with the same snapshot repeatedly is idempotent for resulting
+  stored items and attempts.
+
+Out of scope for this feature version:
+- Snapshot/schema migration, compatibility across versions, or version
+  negotiation.
+- Conflict-resolution strategies beyond the existing domain merge semantics.
+- Partial import/export, filtering, deletion, rollback, encryption, signing,
+  transport/protocol concerns, or cross-repository transaction guarantees.
+"""
 
 from __future__ import annotations
 
