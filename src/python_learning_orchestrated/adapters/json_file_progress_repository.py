@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 import os
-from typing import cast
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import cast
 
 from python_learning_orchestrated.domain.progress import LessonProgress
 from python_learning_orchestrated.ports.progress_repository import ProgressRepository

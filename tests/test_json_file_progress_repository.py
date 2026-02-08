@@ -46,8 +46,12 @@ def test_atomic_save_results_in_valid_json_file(tmp_path) -> None:
     progress_file = tmp_path / "progress.json"
     repository = JsonFileProgressRepository(progress_file)
 
-    repository.save_progress("user-1", {"lesson_id": "variables", "status": "completed"})
-    repository.save_progress("user-2", {"lesson_id": "loops", "status": "completed"})
+    repository.save_progress(
+        "user-1", {"lesson_id": "variables", "status": "completed"}
+    )
+    repository.save_progress(
+        "user-2", {"lesson_id": "loops", "status": "completed"}
+    )
 
     parsed = json.loads(progress_file.read_text(encoding="utf-8"))
     assert parsed["user-1"]["lesson_id"] == "variables"
