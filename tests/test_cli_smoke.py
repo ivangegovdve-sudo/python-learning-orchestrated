@@ -122,7 +122,7 @@ def test_cli_checkpoint_create_and_list(tmp_path, capsys, monkeypatch) -> None:
 
     main(["checkpoint", "list"])
     list_output = capsys.readouterr().out
-    assert "Checkpoints:" in list_output
+    assert "Checkpoints (1):" in list_output
     assert "Week 1" in list_output
 
 
@@ -167,6 +167,9 @@ def test_cli_checkpoint_create_fails_on_existing_name(
             ]
         )
     except SystemExit as exc:
-        assert str(exc) == "checkpoint 'Week 1' already exists"
+        assert (
+            str(exc) == "checkpoint 'Week 1' already exists; run 'checkpoint list' "
+            "or choose a different name"
+        )
     else:
         raise AssertionError("Expected SystemExit for duplicate checkpoint name")
