@@ -31,6 +31,13 @@ class JsonFileProgressRepository(ProgressRepository):
         storage[user_id] = progress.copy()
         self._save_storage(storage)
 
+    def reset_progress(self, user_id: str) -> None:
+        """Delete persisted progress for user_id while keeping other users."""
+        storage = self._load_storage()
+        if user_id in storage:
+            del storage[user_id]
+            self._save_storage(storage)
+
     def _load_storage(self) -> dict[str, LessonProgress]:
         """Load all persisted progress payloads."""
         if not self._file_path.exists():
