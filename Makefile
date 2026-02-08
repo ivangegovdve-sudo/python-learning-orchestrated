@@ -21,4 +21,8 @@ format:
 typecheck:
 	uv run mypy
 
-ci: lint typecheck test
+ci:
+	uv run ruff format --check .
+	uv run ruff check .
+	uv run mypy .
+	uv run pytest -q
