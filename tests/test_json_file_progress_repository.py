@@ -56,3 +56,16 @@ def test_atomic_save_results_in_valid_json_file(tmp_path) -> None:
     parsed = json.loads(progress_file.read_text(encoding="utf-8"))
     assert parsed["user-1"]["lesson_id"] == "variables"
     assert parsed["user-2"]["lesson_id"] == "loops"
+
+
+def test_reset_progress_removes_only_target_user(tmp_path) -> None:
+    """Reset should clear one user and preserve other users in storage."""
+    progress_file = tmp_path / "progress.json"
+    repository = JsonFileProgressRepository(progress_file)
+    repository.save_progress("user-1", {"completed_lessons": ["lesson-1"]})
+    repository.save_progress("user-2", {"completed_lessons": ["lesson-2"]})
+
+    repository.reset_progress("user-1")
+
+    assert repository.get_progress("user-1") == {}
+    assert repository.get_progress("user-2") == {"completed_lessons": ["lesson-2"]}

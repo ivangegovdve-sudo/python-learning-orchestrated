@@ -30,3 +30,14 @@ def test_get_user_progress_delegates_to_repository() -> None:
         "lesson_id": "loops",
         "completed": False,
     }
+
+
+def test_reset_user_progress_delegates_to_repository() -> None:
+    """reset_user_progress clears payload for the user."""
+    repository = InMemoryProgressRepository()
+    repository.save_progress("user-789", {"lesson_id": "functions", "completed": True})
+    service = ProgressService(repository)
+
+    service.reset_user_progress("user-789")
+
+    assert repository.get_progress("user-789") == {}

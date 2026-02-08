@@ -19,3 +19,7 @@ class ProgressService:
     def record_user_progress(self, user_id: str, progress: LessonProgress) -> None:
         """Persist progress data for a user."""
         self._repository.save_progress(user_id, progress)
+
+    def reset_user_progress(self, user_id: str) -> None:
+        """Clear persisted progress for a specific user."""
+        self._repository.reset_progress(user_id)

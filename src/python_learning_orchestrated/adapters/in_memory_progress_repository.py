@@ -19,3 +19,7 @@ class InMemoryProgressRepository(ProgressRepository):
     def save_progress(self, user_id: str, progress: LessonProgress) -> None:
         """Save a copy of progress for user_id."""
         self._storage[user_id] = progress.copy()
+
+    def reset_progress(self, user_id: str) -> None:
+        """Delete progress for user_id if present."""
+        self._storage.pop(user_id, None)

@@ -17,3 +17,7 @@ class ProgressRepository(ABC):
     @abstractmethod
     def save_progress(self, user_id: str, progress: LessonProgress) -> None:
         """Persist a user's progress payload."""
+
+    @abstractmethod
+    def reset_progress(self, user_id: str) -> None:
+        """Delete persisted progress for a specific user."""
