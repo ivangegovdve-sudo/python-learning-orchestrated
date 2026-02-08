@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import python_learning_orchestrated.cli as cli_module
 from python_learning_orchestrated.cli import main
 
 
@@ -88,3 +89,84 @@ def test_cli_export_and_import_progress_commands(tmp_path, capsys) -> None:
 
     session_payload = json.loads(session_file.read_text(encoding="utf-8"))
     assert len(session_payload["attempts"]) == 1
+
+
+def test_cli_checkpoint_create_and_list(tmp_path, capsys, monkeypatch) -> None:
+    session_file = tmp_path / "session.json"
+    checkpoint_dir = tmp_path / "checkpoints"
+
+    choices = iter(["correct", "quit"])
+    main(
+        ["session", "--session-file", str(session_file)], input_fn=lambda: next(choices)
+    )
+    capsys.readouterr()
+
+    checkpoint_store_class = cli_module.CheckpointStore
+    monkeypatch.setattr(
+        cli_module,
+        "CheckpointStore",
+        lambda: checkpoint_store_class(checkpoint_dir),
+    )
+
+    main(
+        [
+            "checkpoint",
+            "create",
+            "Week 1",
+            "--session-file",
+            str(session_file),
+        ]
+    )
+    create_output = capsys.readouterr().out
+    assert "Created checkpoint 'Week 1'." in create_output
+
+    main(["checkpoint", "list"])
+    list_output = capsys.readouterr().out
+    assert "Checkpoints:" in list_output
+    assert "Week 1" in list_output
+
+
+def test_cli_checkpoint_create_fails_on_existing_name(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    session_file = tmp_path / "session.json"
+    checkpoint_dir = tmp_path / "checkpoints"
+
+    choices = iter(["correct", "quit"])
+    main(
+        ["session", "--session-file", str(session_file)], input_fn=lambda: next(choices)
+    )
+    capsys.readouterr()
+
+    checkpoint_store_class = cli_module.CheckpointStore
+    monkeypatch.setattr(
+        cli_module,
+        "CheckpointStore",
+        lambda: checkpoint_store_class(checkpoint_dir),
+    )
+
+    main(
+        [
+            "checkpoint",
+            "create",
+            "Week 1",
+            "--session-file",
+            str(session_file),
+        ]
+    )
+    capsys.readouterr()
+
+    try:
+        main(
+            [
+                "checkpoint",
+                "create",
+                "Week 1",
+                "--session-file",
+                str(session_file),
+            ]
+        )
+    except SystemExit as exc:
+        assert str(exc) == "checkpoint 'Week 1' already exists"
+    else:
+        raise AssertionError("Expected SystemExit for duplicate checkpoint name")

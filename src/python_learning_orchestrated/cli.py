@@ -6,6 +6,7 @@ import argparse
 from collections.abc import Callable
 from datetime import datetime
 
+from python_learning_orchestrated.adapters.checkpoint_store import CheckpointStore
 from python_learning_orchestrated.adapters.in_memory_practice_repository import (
     InMemoryPracticeRepository,
 )
@@ -55,11 +56,30 @@ def _build_parser() -> argparse.ArgumentParser:
         "command",
         nargs="?",
         default="interactive",
-        choices=["interactive", "session", "export-progress", "import-progress"],
+        choices=[
+            "interactive",
+            "session",
+            "export-progress",
+            "import-progress",
+            "checkpoint",
+        ],
         help=(
             "Run interactive lesson menu, practice session, "
             "or progress transfer commands."
         ),
+    )
+    parser.add_argument(
+        "checkpoint_command",
+        nargs="?",
+        default=None,
+        choices=["create", "list"],
+        help="Checkpoint action to run when command is checkpoint.",
+    )
+    parser.add_argument(
+        "checkpoint_name",
+        nargs="?",
+        default=None,
+        help="Checkpoint name used by checkpoint create.",
     )
     parser.add_argument(
         "--session-file",
@@ -176,6 +196,37 @@ def main(
             f"{len(merged.attempts)} attempts)."
         )
         return
+
+    if args.command == "checkpoint":
+        repository = _build_practice_repository(args.session_file)
+        checkpoint_store = CheckpointStore()
+
+        if args.checkpoint_command == "create":
+            if not args.checkpoint_name:
+                raise SystemExit("checkpoint create requires <name>")
+            if any(
+                checkpoint.name == args.checkpoint_name
+                for checkpoint in checkpoint_store.list_checkpoints()
+            ):
+                raise SystemExit(f"checkpoint '{args.checkpoint_name}' already exists")
+            snapshot = ExportProgress(
+                repository=repository, now_provider=datetime.now
+            ).run()
+            checkpoint_store.save_checkpoint(args.checkpoint_name, snapshot)
+            output_fn(f"Created checkpoint '{args.checkpoint_name}'.")
+            return
+
+        if args.checkpoint_command == "list":
+            checkpoints = checkpoint_store.list_checkpoints()
+            if not checkpoints:
+                output_fn("No checkpoints found.")
+                return
+            output_fn("Checkpoints:")
+            for checkpoint in checkpoints:
+                output_fn(f"- {checkpoint.name} ({checkpoint.created_at.isoformat()})")
+            return
+
+        raise SystemExit("checkpoint requires create or list")
 
     user_id = "demo-user"
     progress_repository = _build_repository(args.progress_file)
