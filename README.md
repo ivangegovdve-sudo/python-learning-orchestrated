@@ -22,6 +22,12 @@ uv run pre-commit install
 uv run python-learning
 ```
 
+Run the practice session orchestrator:
+
+```bash
+uv run python-learning session
+```
+
 ## Test
 
 ```bash

@@ -33,3 +33,15 @@ def test_cli_progress_file_resumes_progress(tmp_path, capsys) -> None:
     assert "Completed lesson: variables" in first_output
     assert "Completed lesson: loops" in second_output
     assert Path(progress_file).exists()
+
+
+def test_cli_session_command_runs_practice_loop(capsys) -> None:
+    choices = iter(["correct", "quit"])
+
+    main(["session"], input_fn=lambda: next(choices))
+
+    output = capsys.readouterr().out
+    assert "Starting practice session." in output
+    assert "Activity variables-review" in output
+    assert "Recorded: correct for variables-review." in output
+    assert "Session ended by user." in output
