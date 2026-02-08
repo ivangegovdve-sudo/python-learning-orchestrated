@@ -28,44 +28,10 @@ class JsonFileProgressSnapshotStore(ProgressSnapshotStore):
         self._file_path.parent.mkdir(parents=True, exist_ok=True)
 
     def load(self) -> ProgressSnapshot:
-        payload = self._load_payload()
-        raw_items = payload.get("items", [])
-        raw_attempts = payload.get("attempts", [])
-
-        item_entries = raw_items if isinstance(raw_items, list) else []
-        attempt_entries = raw_attempts if isinstance(raw_attempts, list) else []
-
-        items = [
-            _item_from_dict(entry) for entry in item_entries if isinstance(entry, dict)
-        ]
-        attempts = [
-            _attempt_from_dict(entry)
-            for entry in attempt_entries
-            if isinstance(entry, dict) and _has_attempt_required_fields(entry)
-        ]
-
-        exported_at_raw = payload.get("exported_at")
-        exported_at = (
-            datetime.fromisoformat(exported_at_raw)
-            if isinstance(exported_at_raw, str)
-            else datetime.fromtimestamp(0)
-        )
-
-        return ProgressSnapshot(
-            version=_to_int(payload.get("version"), 1),
-            exported_at=exported_at,
-            items=items,
-            attempts=attempts,
-        )
+        return progress_snapshot_from_payload(self._load_payload())
 
     def save(self, snapshot: ProgressSnapshot) -> None:
-        payload = {
-            "version": snapshot.version,
-            "exported_at": snapshot.exported_at.isoformat(),
-            "items": [_item_to_dict(item) for item in snapshot.items],
-            "attempts": [_attempt_to_dict(attempt) for attempt in snapshot.attempts],
-        }
-        self._save_payload(payload)
+        self._save_payload(progress_snapshot_to_payload(snapshot))
 
     def _load_payload(self) -> dict[str, object]:
         if not self._file_path.exists():
@@ -107,6 +73,50 @@ def _item_to_dict(item: LearningItem) -> dict[str, object]:
         "review_level": item.review_level,
         "interval_minutes": item.interval_minutes,
     }
+
+
+def progress_snapshot_to_payload(snapshot: ProgressSnapshot) -> dict[str, object]:
+    """Serialize progress snapshot to the stable JSON payload shape."""
+
+    return {
+        "version": snapshot.version,
+        "exported_at": snapshot.exported_at.isoformat(),
+        "items": [_item_to_dict(item) for item in snapshot.items],
+        "attempts": [_attempt_to_dict(attempt) for attempt in snapshot.attempts],
+    }
+
+
+def progress_snapshot_from_payload(payload: dict[str, object]) -> ProgressSnapshot:
+    """Deserialize progress snapshot from the stable JSON payload shape."""
+
+    raw_items = payload.get("items", [])
+    raw_attempts = payload.get("attempts", [])
+
+    item_entries = raw_items if isinstance(raw_items, list) else []
+    attempt_entries = raw_attempts if isinstance(raw_attempts, list) else []
+
+    items = [
+        _item_from_dict(entry) for entry in item_entries if isinstance(entry, dict)
+    ]
+    attempts = [
+        _attempt_from_dict(entry)
+        for entry in attempt_entries
+        if isinstance(entry, dict) and _has_attempt_required_fields(entry)
+    ]
+
+    exported_at_raw = payload.get("exported_at")
+    exported_at = (
+        datetime.fromisoformat(exported_at_raw)
+        if isinstance(exported_at_raw, str)
+        else datetime.fromtimestamp(0)
+    )
+
+    return ProgressSnapshot(
+        version=_to_int(payload.get("version"), 1),
+        exported_at=exported_at,
+        items=items,
+        attempts=attempts,
+    )
 
 
 def _item_from_dict(payload: dict[str, object]) -> LearningItem:
