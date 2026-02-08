@@ -9,10 +9,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import cast
 
-from python_learning_orchestrated.adapters.json_file_progress_snapshot_store import (
-    progress_snapshot_from_payload,
-    progress_snapshot_to_payload,
+from python_learning_orchestrated.domain.practice import (
+    Attempt,
+    AttemptOutcome,
+    LearningItem,
 )
 from python_learning_orchestrated.domain.practice_progress import ProgressSnapshot
 
@@ -59,7 +61,7 @@ class CheckpointStore:
             "name": metadata.name,
             "created_at": metadata.created_at.isoformat(),
             "description": metadata.description,
-            "progress": progress_snapshot_to_payload(progress),
+            "progress": _snapshot_to_dict(progress),
         }
         _write_json(self._path_for_name(name), payload)
         return metadata
@@ -77,7 +79,7 @@ class CheckpointStore:
         )
         return CheckpointRecord(
             metadata=metadata,
-            progress=progress_snapshot_from_payload(parsed_progress_payload),
+            progress=_snapshot_from_dict(parsed_progress_payload),
         )
 
     def list_checkpoints(self) -> list[Checkpoint]:
@@ -120,6 +122,107 @@ def _name_from_path(path: Path) -> str:
 
 def _optional_str(value: object) -> str | None:
     return value if isinstance(value, str) else None
+
+
+def _snapshot_to_dict(snapshot: ProgressSnapshot) -> dict[str, object]:
+    return {
+        "version": snapshot.version,
+        "exported_at": snapshot.exported_at.isoformat(),
+        "items": [_item_to_dict(item) for item in snapshot.items],
+        "attempts": [_attempt_to_dict(attempt) for attempt in snapshot.attempts],
+    }
+
+
+def _snapshot_from_dict(payload: dict[str, object]) -> ProgressSnapshot:
+    raw_items = payload.get("items", [])
+    raw_attempts = payload.get("attempts", [])
+
+    item_entries = raw_items if isinstance(raw_items, list) else []
+    attempt_entries = raw_attempts if isinstance(raw_attempts, list) else []
+
+    items = [
+        _item_from_dict(entry) for entry in item_entries if isinstance(entry, dict)
+    ]
+    attempts = [
+        _attempt_from_dict(entry)
+        for entry in attempt_entries
+        if isinstance(entry, dict) and _has_attempt_required_fields(entry)
+    ]
+
+    exported_at_raw = payload.get("exported_at")
+    exported_at = (
+        datetime.fromisoformat(exported_at_raw)
+        if isinstance(exported_at_raw, str)
+        else datetime.fromtimestamp(0)
+    )
+
+    return ProgressSnapshot(
+        version=_to_int(payload.get("version"), 1),
+        exported_at=exported_at,
+        items=items,
+        attempts=attempts,
+    )
+
+
+def _item_to_dict(item: LearningItem) -> dict[str, object]:
+    return {
+        "id": item.id,
+        "prompt": item.prompt,
+        "status": item.status,
+        "order": item.order,
+        "due_at": item.due_at.isoformat() if item.due_at else None,
+        "review_level": item.review_level,
+        "interval_minutes": item.interval_minutes,
+    }
+
+
+def _item_from_dict(payload: dict[str, object]) -> LearningItem:
+    due_at_raw = payload.get("due_at")
+    due_at = datetime.fromisoformat(due_at_raw) if isinstance(due_at_raw, str) else None
+    return LearningItem(
+        id=str(payload.get("id", "")),
+        prompt=str(payload.get("prompt", "")),
+        status="review" if payload.get("status") == "review" else "new",
+        order=_to_int(payload.get("order"), 0),
+        due_at=due_at,
+        review_level=_to_int(payload.get("review_level"), 0),
+        interval_minutes=_to_int(payload.get("interval_minutes"), 0),
+    )
+
+
+def _attempt_to_dict(attempt: Attempt) -> dict[str, str]:
+    return {
+        "item_id": attempt.item_id,
+        "timestamp": attempt.timestamp.isoformat(),
+        "outcome": attempt.outcome,
+    }
+
+
+def _attempt_from_dict(payload: dict[str, object]) -> Attempt:
+    outcome = str(payload.get("outcome", "skip"))
+    normalized = outcome if outcome in {"correct", "incorrect", "skip"} else "skip"
+    return Attempt(
+        item_id=str(payload.get("item_id", "")),
+        timestamp=datetime.fromisoformat(str(payload.get("timestamp"))),
+        outcome=cast(AttemptOutcome, normalized),
+    )
+
+
+def _has_attempt_required_fields(payload: dict[str, object]) -> bool:
+    return isinstance(payload.get("item_id"), str) and isinstance(
+        payload.get("timestamp"), str
+    )
+
+
+def _to_int(value: object, default: int) -> int:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return default
+    return default
 
 
 def _read_json(path: Path) -> dict[str, object]:
