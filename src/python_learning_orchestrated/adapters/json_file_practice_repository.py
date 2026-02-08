@@ -7,8 +7,13 @@ import os
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import cast
 
-from python_learning_orchestrated.domain.practice import Attempt, LearningItem
+from python_learning_orchestrated.domain.practice import (
+    Attempt,
+    AttemptOutcome,
+    LearningItem,
+)
 from python_learning_orchestrated.ports.practice_repository import PracticeRepository
 
 
@@ -44,6 +49,36 @@ class JsonFilePracticeRepository(PracticeRepository):
         by_id[item.id] = item
         storage["items"] = [_item_to_dict(entry) for entry in by_id.values()]
         self._save_storage(storage)
+
+    def list_attempts(self) -> list[Attempt]:
+        storage = self._load_storage()
+        raw_attempts = storage.get("attempts", [])
+        if not isinstance(raw_attempts, list):
+            return []
+        attempts: list[Attempt] = []
+        for entry in raw_attempts:
+            if not isinstance(entry, dict):
+                continue
+            item_id = entry.get("item_id")
+            timestamp = entry.get("timestamp")
+            outcome = entry.get("outcome")
+            if not isinstance(item_id, str) or not isinstance(timestamp, str):
+                continue
+            try:
+                parsed_timestamp = datetime.fromisoformat(timestamp)
+            except ValueError:
+                continue
+            normalized_outcome = (
+                outcome if outcome in {"correct", "incorrect", "skip"} else "skip"
+            )
+            attempts.append(
+                Attempt(
+                    item_id=item_id,
+                    timestamp=parsed_timestamp,
+                    outcome=cast(AttemptOutcome, normalized_outcome),
+                )
+            )
+        return attempts
 
     def record_attempt(self, attempt: Attempt) -> None:
         storage = self._load_storage()
