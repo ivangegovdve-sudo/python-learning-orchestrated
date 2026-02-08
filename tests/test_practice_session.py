@@ -8,9 +8,7 @@ from datetime import datetime, timedelta
 from python_learning_orchestrated.adapters.in_memory_practice_repository import (
     InMemoryPracticeRepository,
 )
-from python_learning_orchestrated.application.practice_session import (
-    RunPracticeSession,
-)
+from python_learning_orchestrated.application.practice_session import RunPracticeSession
 from python_learning_orchestrated.domain.practice import LearningItem
 from python_learning_orchestrated.ports.session_io import SessionIO
 
