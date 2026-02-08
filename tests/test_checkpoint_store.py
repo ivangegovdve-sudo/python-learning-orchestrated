@@ -67,3 +67,18 @@ def test_list_and_delete_checkpoints(tmp_path) -> None:
 
     remaining = store.list_checkpoints()
     assert [checkpoint.name for checkpoint in remaining] == ["Week 2"]
+
+
+def test_checkpoint_filename_is_stable_and_human_readable(tmp_path) -> None:
+    store = CheckpointStore(tmp_path)
+    snapshot = ProgressSnapshot(
+        version=1,
+        exported_at=datetime(2025, 1, 3, 8, 0, 0),
+        items=[],
+        attempts=[],
+    )
+
+    store.save_checkpoint("  Week 1: Python Basics!  ", snapshot)
+
+    checkpoint_files = sorted(path.name for path in tmp_path.glob("*.checkpoint.json"))
+    assert checkpoint_files == ["week-1-python-basics.checkpoint.json"]
