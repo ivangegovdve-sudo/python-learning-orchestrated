@@ -19,5 +19,9 @@ class PracticeRepository(ABC):
         """Persist item scheduling state."""
 
     @abstractmethod
+    def list_attempts(self) -> list[Attempt]:
+        """Return all recorded attempts."""
+
+    @abstractmethod
     def record_attempt(self, attempt: Attempt) -> None:
         """Persist an attempt record."""

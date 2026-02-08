@@ -18,6 +18,9 @@ from python_learning_orchestrated.adapters.json_file_practice_repository import 
 from python_learning_orchestrated.adapters.json_file_progress_repository import (
     JsonFileProgressRepository,
 )
+from python_learning_orchestrated.adapters.json_file_progress_snapshot_store import (
+    JsonFileProgressSnapshotStore,
+)
 from python_learning_orchestrated.adapters.stdio_session_io import StdioSessionIO
 from python_learning_orchestrated.application.interactive_ui import (
     InteractiveLearningUI,
@@ -26,6 +29,10 @@ from python_learning_orchestrated.application.interactive_ui import (
 from python_learning_orchestrated.application.lesson_runner import LessonRunner
 from python_learning_orchestrated.application.practice_session import RunPracticeSession
 from python_learning_orchestrated.application.progress_service import ProgressService
+from python_learning_orchestrated.application.progress_transfer import (
+    ExportProgress,
+    ImportProgress,
+)
 from python_learning_orchestrated.domain.learning_path import LearningPath, Lesson
 from python_learning_orchestrated.domain.practice import LearningItem
 from python_learning_orchestrated.ports.practice_repository import PracticeRepository
@@ -48,14 +55,30 @@ def _build_parser() -> argparse.ArgumentParser:
         "command",
         nargs="?",
         default="interactive",
-        choices=["interactive", "session"],
-        help="Run interactive lesson menu or practice session.",
+        choices=["interactive", "session", "export-progress", "import-progress"],
+        help=(
+            "Run interactive lesson menu, practice session, "
+            "or progress transfer commands."
+        ),
     )
     parser.add_argument(
         "--session-file",
         type=str,
         default=None,
         help="Persist practice session state in the given JSON file path.",
+    )
+    parser.add_argument(
+        "--out",
+        type=str,
+        default=None,
+        help="Output file for export-progress snapshot JSON.",
+    )
+    parser.add_argument(
+        "--in",
+        dest="input_path",
+        type=str,
+        default=None,
+        help="Input file for import-progress snapshot JSON.",
     )
     return parser
 
@@ -128,6 +151,30 @@ def main(
             repository=repository, io=io, now_provider=datetime.now
         )
         session.run()
+        return
+
+    if args.command == "export-progress":
+        if not args.out:
+            raise SystemExit("export-progress requires --out <file>")
+        repository = _build_practice_repository(args.session_file)
+        snapshot = ExportProgress(
+            repository=repository, now_provider=datetime.now
+        ).run()
+        JsonFileProgressSnapshotStore(args.out).save(snapshot)
+        output_fn(f"Exported progress snapshot to {args.out}.")
+        return
+
+    if args.command == "import-progress":
+        if not args.input_path:
+            raise SystemExit("import-progress requires --in <file>")
+        repository = _build_practice_repository(args.session_file)
+        snapshot = JsonFileProgressSnapshotStore(args.input_path).load()
+        merged = ImportProgress(repository=repository).run(snapshot)
+        output_fn(
+            "Imported progress snapshot from "
+            f"{args.input_path} ({len(merged.items)} items, "
+            f"{len(merged.attempts)} attempts)."
+        )
         return
 
     user_id = "demo-user"

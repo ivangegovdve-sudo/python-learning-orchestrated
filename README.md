@@ -28,6 +28,13 @@ Run the practice session orchestrator:
 uv run python-learning session
 ```
 
+Run progress export/import commands for practice session data:
+
+```bash
+uv run python-learning export-progress --session-file .session.json --out .snapshot.json
+uv run python-learning import-progress --session-file .session.json --in .snapshot.json
+```
+
 ## Test
 
 ```bash
