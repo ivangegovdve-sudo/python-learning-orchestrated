@@ -73,7 +73,7 @@ def _build_parser() -> argparse.ArgumentParser:
         nargs="?",
         default=None,
         choices=["create", "list"],
-        help="Checkpoint action to run when command is checkpoint.",
+        help="Checkpoint action: create a named snapshot or list saved snapshots.",
     )
     parser.add_argument(
         "checkpoint_name",
@@ -204,11 +204,11 @@ def main(
         if args.checkpoint_command == "create":
             if not args.checkpoint_name:
                 raise SystemExit("checkpoint create requires <name>")
-            if any(
-                checkpoint.name == args.checkpoint_name
-                for checkpoint in checkpoint_store.list_checkpoints()
-            ):
-                raise SystemExit(f"checkpoint '{args.checkpoint_name}' already exists")
+            if checkpoint_store.has_checkpoint(args.checkpoint_name):
+                raise SystemExit(
+                    f"checkpoint '{args.checkpoint_name}' conflicts with an existing "
+                    "checkpoint name; run 'checkpoint list' or choose a different name"
+                )
             snapshot = ExportProgress(
                 repository=repository, now_provider=datetime.now
             ).run()
@@ -221,12 +221,15 @@ def main(
             if not checkpoints:
                 output_fn("No checkpoints found.")
                 return
-            output_fn("Checkpoints:")
+            output_fn(f"Checkpoints ({len(checkpoints)}):")
             for checkpoint in checkpoints:
-                output_fn(f"- {checkpoint.name} ({checkpoint.created_at.isoformat()})")
+                created_at_label = checkpoint.created_at.strftime("%Y-%m-%d %H:%M")
+                output_fn(f"- {checkpoint.name} — {created_at_label}")
             return
 
-        raise SystemExit("checkpoint requires create or list")
+        raise SystemExit(
+            "checkpoint requires 'create' or 'list' (e.g. checkpoint list)"
+        )
 
     user_id = "demo-user"
     progress_repository = _build_repository(args.progress_file)

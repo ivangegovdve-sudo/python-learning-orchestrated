@@ -100,6 +100,11 @@ class CheckpointStore:
     def delete_checkpoint(self, name: str) -> None:
         self._path_for_name(name).unlink(missing_ok=True)
 
+    def has_checkpoint(self, name: str) -> bool:
+        """Return whether a checkpoint filename slot already exists."""
+
+        return self._path_for_name(name).exists()
+
     def _path_for_name(self, name: str) -> Path:
         return self._directory / f"{_slugify(name)}{_CHECKPOINT_FILENAME_SUFFIX}"
 
