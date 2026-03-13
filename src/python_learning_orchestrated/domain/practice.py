@@ -40,11 +40,11 @@ def select_next_item(items: list[LearningItem], now: datetime) -> LearningItem |
         if item.status == "review" and item.due_at is not None and item.due_at <= now
     ]
     if due_reviews:
-        return sorted(due_reviews, key=lambda item: (item.due_at, item.id))[0]
+        return min(due_reviews, key=lambda item: (item.due_at, item.id))
 
     new_items = [item for item in items if item.status == "new"]
     if new_items:
-        return sorted(new_items, key=lambda item: (item.order, item.id))[0]
+        return min(new_items, key=lambda item: (item.order, item.id))
 
     return None
 

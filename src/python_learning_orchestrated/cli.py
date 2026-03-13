@@ -204,13 +204,14 @@ def main(
         if args.checkpoint_command == "create":
             if not args.checkpoint_name:
                 raise SystemExit("checkpoint create requires <name>")
-            if any(
-                checkpoint.name == args.checkpoint_name
-                for checkpoint in checkpoint_store.list_checkpoints()
-            ):
+            if checkpoint_store.has_checkpoint(args.checkpoint_name):
+                existing_name = checkpoint_store.load_checkpoint(
+                    args.checkpoint_name
+                ).metadata.name
                 raise SystemExit(
-                    f"checkpoint '{args.checkpoint_name}' already exists; "
-                    "run 'checkpoint list' or choose a different name"
+                    f"checkpoint '{args.checkpoint_name}' conflicts with existing "
+                    f"checkpoint '{existing_name}'; run 'checkpoint list' or choose a "
+                    "different name"
                 )
             snapshot = ExportProgress(
                 repository=repository, now_provider=datetime.now
@@ -227,7 +228,7 @@ def main(
             output_fn(f"Checkpoints ({len(checkpoints)}):")
             for checkpoint in checkpoints:
                 created_at_label = checkpoint.created_at.strftime("%Y-%m-%d %H:%M")
-                output_fn(f"- {checkpoint.name} — {created_at_label}")
+                output_fn(f"- {checkpoint.name} ({created_at_label})")
             return
 
         raise SystemExit(

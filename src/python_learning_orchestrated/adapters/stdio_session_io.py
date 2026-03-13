@@ -22,5 +22,5 @@ class StdioSessionIO(SessionIO):
         self._output_fn(line)
 
     def read_outcome(self, item: LearningItem) -> str:
-        self._output_fn("Enter outcome [correct/c, incorrect/i, skip/s, quit/q]:")
+        self._output_fn("\n> Enter outcome [correct/c, incorrect/i, skip/s, quit/q]:")
         return self._input_fn()

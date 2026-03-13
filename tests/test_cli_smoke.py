@@ -126,6 +126,48 @@ def test_cli_checkpoint_create_and_list(tmp_path, capsys, monkeypatch) -> None:
     assert "Week 1" in list_output
 
 
+def test_cli_checkpoint_create_fails_on_slug_collision(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    session_file = tmp_path / "session.json"
+    checkpoint_dir = tmp_path / "checkpoints"
+
+    choices = iter(["correct", "quit"])
+    main(
+        ["session", "--session-file", str(session_file)], input_fn=lambda: next(choices)
+    )
+    capsys.readouterr()
+
+    checkpoint_store_class = cli_module.CheckpointStore
+    monkeypatch.setattr(
+        cli_module,
+        "CheckpointStore",
+        lambda: checkpoint_store_class(checkpoint_dir),
+    )
+
+    main(["checkpoint", "create", "Week 1", "--session-file", str(session_file)])
+    capsys.readouterr()
+
+    try:
+        main(
+            [
+                "checkpoint",
+                "create",
+                "Week-1",
+                "--session-file",
+                str(session_file),
+            ]
+        )
+    except SystemExit as exc:
+        assert (
+            str(exc)
+            == "checkpoint 'Week-1' conflicts with existing checkpoint 'Week 1'; "
+            "run 'checkpoint list' or choose a different name"
+        )
+    else:
+        raise AssertionError("Expected SystemExit for checkpoint slug collision")
+
+
 def test_cli_checkpoint_create_fails_on_existing_name(
     tmp_path, capsys, monkeypatch
 ) -> None:
@@ -168,8 +210,9 @@ def test_cli_checkpoint_create_fails_on_existing_name(
         )
     except SystemExit as exc:
         assert (
-            str(exc) == "checkpoint 'Week 1' already exists; run 'checkpoint list' "
-            "or choose a different name"
+            str(exc)
+            == "checkpoint 'Week 1' conflicts with existing checkpoint 'Week 1'; "
+            "run 'checkpoint list' or choose a different name"
         )
     else:
         raise AssertionError("Expected SystemExit for duplicate checkpoint name")

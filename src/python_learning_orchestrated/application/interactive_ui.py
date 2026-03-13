@@ -162,7 +162,7 @@ def run_interactive_ui_loop(
             output_fn(line)
 
         output_fn("")
-        output_fn("Select an option:")
+        output_fn("> Select an option:")
         choice = input_fn()
 
         action_result = ui.handle_menu_choice(choice)
