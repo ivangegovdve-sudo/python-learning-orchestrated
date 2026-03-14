@@ -46,7 +46,8 @@ class InteractiveLearningUI:
         return [
             "=== Python Learning Orchestrated ===",
             f"User: {self._user_id}",
-            f"Progress: {completed_count}/{total_count} lessons completed",
+            f"Progress: {completed_count}/{total_count} lessons completed "
+            f"{_progress_bar(completed_count, total_count)}",
         ]
 
     def menu_lines(self) -> list[str]:
@@ -84,6 +85,13 @@ class InteractiveLearningUI:
         return MenuActionResult(lines=["Invalid choice. Please select 0, 1, 2, or 3."])
 
 
+def _progress_bar(completed: int, total: int, width: int = 10) -> str:
+    if total <= 0:
+        return f"[{' ' * width}]"
+    filled = int(round((completed / total) * width))
+    return f"[{'█' * filled}{'░' * (width - filled)}]"
+
+
 def progress_summary(
     progress_service: ProgressService,
     learning_path: LearningPath,
@@ -118,7 +126,8 @@ def start_or_continue_learning(
         )
         lines = [
             f"Completed lesson: {lesson_id}",
-            f"Progress: {completed_count}/{total_count} lessons completed",
+            f"Progress: {completed_count}/{total_count} lessons completed "
+            f"{_progress_bar(completed_count, total_count)}",
         ]
     else:
         lines = ["All lessons are already completed."]

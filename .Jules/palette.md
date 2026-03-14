@@ -1,0 +1,3 @@
+## 2024-05-18 - Visual Progress Bars in CLI Apps
+ **Learning:** Adding visual text progress bars (e.g., `[█████░░░░░]`) to CLI applications provides a better micro-interaction and sense of accomplishment compared to purely numeric states (e.g., "1/2"). It makes the interface feel more polished and visually rewarding.
+ **Action:** Always look for opportunities to replace or augment purely numeric progress indicators with visual text-based representations in CLI tools to improve the user experience.
