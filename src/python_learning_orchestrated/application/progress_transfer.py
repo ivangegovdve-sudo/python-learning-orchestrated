@@ -61,18 +61,24 @@ class ImportProgress:
         self._repository = repository
 
     def run(self, snapshot: ProgressSnapshot) -> ProgressSnapshot:
+        current_items = self._repository.list_items()
+        current_attempts = self._repository.list_attempts()
+
         merged_items, merged_attempts = merge_progress(
-            current_items=self._repository.list_items(),
-            current_attempts=self._repository.list_attempts(),
+            current_items=current_items,
+            current_attempts=current_attempts,
             imported=snapshot,
         )
 
-        # ⚡ Bolt: Batch saving the items instead of O(N) single save operations
-        self._repository.save_items(merged_items)
+        current_items_by_id = {item.id: item for item in current_items}
+        changed_items = [
+            item for item in merged_items if item != current_items_by_id.get(item.id)
+        ]
+        if changed_items:
+            self._repository.save_items(changed_items)
 
         existing_attempt_keys = {
-            (attempt.item_id, attempt.timestamp)
-            for attempt in self._repository.list_attempts()
+            (attempt.item_id, attempt.timestamp) for attempt in current_attempts
         }
         new_attempts = []
         for attempt in merged_attempts:
@@ -81,7 +87,6 @@ class ImportProgress:
                 new_attempts.append(attempt)
                 existing_attempt_keys.add(key)
 
-        # ⚡ Bolt: Batch recording attempts
         if new_attempts:
             self._repository.record_attempts(new_attempts)
 
