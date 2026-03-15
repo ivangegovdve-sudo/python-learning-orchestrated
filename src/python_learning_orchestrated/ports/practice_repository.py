@@ -19,7 +19,7 @@ class PracticeRepository(ABC):
         """Persist item scheduling state."""
 
     def save_items(self, items: list[LearningItem]) -> None:
-        """Persist multiple items scheduling state."""
+        """Persist multiple items scheduling state in batch."""
         for item in items:
             self.save_item(item)
 
@@ -32,6 +32,6 @@ class PracticeRepository(ABC):
         """Persist an attempt record."""
 
     def record_attempts(self, attempts: list[Attempt]) -> None:
-        """Persist multiple attempt records."""
+        """Persist multiple attempt records in batch."""
         for attempt in attempts:
             self.record_attempt(attempt)
