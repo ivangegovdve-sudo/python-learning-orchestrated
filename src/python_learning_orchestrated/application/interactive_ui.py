@@ -124,8 +124,16 @@ def start_or_continue_learning(
             learning_path,
             user_id,
         )
+        lesson_title = next(
+            (
+                lesson.title
+                for lesson in learning_path.lessons
+                if lesson.id == lesson_id
+            ),
+            lesson_id,
+        )
         lines = [
-            f"Completed lesson: {lesson_id}",
+            f"Completed lesson: {lesson_title}",
             f"Progress: {completed_count}/{total_count} lessons completed "
             f"{_progress_bar(completed_count, total_count)}",
         ]

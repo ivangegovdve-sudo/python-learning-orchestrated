@@ -38,7 +38,7 @@ def test_start_or_continue_learning_completes_next_lesson() -> None:
     result = start_or_continue_learning(runner, service, learning_path, "user-1")
 
     assert result.should_exit is False
-    assert result.lines[0] == "Completed lesson: lesson-1"
+    assert result.lines[0] == "Completed lesson: Variables"
 
 
 def test_show_progress_lists_completed_and_pending_lessons() -> None:
