@@ -91,6 +91,10 @@ class JsonFilePracticeRepository(PracticeRepository):
     def _load_storage(self) -> dict[str, object]:
         if not self._file_path.exists():
             return {"items": [], "attempts": []}
+        if self._file_path.stat().st_size > 10 * 1024 * 1024:
+            raise ValueError(
+                f"Practice repository file {self._file_path} exceeds 10MB size limit"
+            )
 
         try:
             content = self._file_path.read_text(encoding="utf-8")
