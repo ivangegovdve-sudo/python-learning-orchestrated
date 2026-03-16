@@ -20,6 +20,10 @@ class InMemoryPracticeRepository(PracticeRepository):
     def save_item(self, item: LearningItem) -> None:
         self._items[item.id] = item
 
+    def save_items(self, items: list[LearningItem]) -> None:
+        for item in items:
+            self._items[item.id] = item
+
     def record_attempt(self, attempt: Attempt) -> None:
         self._attempts.append(attempt)
 
