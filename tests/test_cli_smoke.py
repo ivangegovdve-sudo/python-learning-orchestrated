@@ -32,8 +32,8 @@ def test_cli_progress_file_resumes_progress(tmp_path, capsys) -> None:
     main(["--progress-file", str(progress_file)], input_fn=lambda: next(choices))
     second_output = capsys.readouterr().out
 
-    assert "Completed lesson: variables" in first_output
-    assert "Completed lesson: loops" in second_output
+    assert "Completed lesson: Variables" in first_output
+    assert "Completed lesson: Loops" in second_output
     assert Path(progress_file).exists()
 
 
