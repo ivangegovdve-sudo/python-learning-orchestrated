@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 from datetime import datetime
@@ -23,6 +24,10 @@ class JsonFilePracticeRepository(PracticeRepository):
     def __init__(self, file_path: str | Path, seed_items: list[LearningItem]) -> None:
         self._file_path = Path(file_path)
         self._file_path.parent.mkdir(parents=True, exist_ok=True)
+        # Performance: Cache storage in memory to avoid redundant file I/O and
+        # JSON parsing on every read/write operation (e.g., batch imports).
+        self._cached_storage: dict[str, object] | None = None
+        self._cached_mtime: float = 0.0
         if not self._file_path.exists():
             self._save_storage(
                 {"items": [_item_to_dict(item) for item in seed_items], "attempts": []}
@@ -105,6 +110,14 @@ class JsonFilePracticeRepository(PracticeRepository):
     def _load_storage(self) -> dict[str, object]:
         if not self._file_path.exists():
             return {"items": [], "attempts": []}
+
+        try:
+            current_mtime = self._file_path.stat().st_mtime
+            if self._cached_storage is not None and self._cached_mtime == current_mtime:
+                return copy.deepcopy(self._cached_storage)
+        except OSError:
+            pass
+
         if self._file_path.stat().st_size > 10 * 1024 * 1024:
             raise ValueError(
                 f"Practice repository file {self._file_path} exceeds 10MB size limit"
@@ -115,7 +128,11 @@ class JsonFilePracticeRepository(PracticeRepository):
             if not content.strip():
                 return {"items": [], "attempts": []}
             parsed = json.loads(content)
-            return parsed if isinstance(parsed, dict) else {"items": [], "attempts": []}
+            self._cached_storage = (
+                parsed if isinstance(parsed, dict) else {"items": [], "attempts": []}
+            )
+            self._cached_mtime = self._file_path.stat().st_mtime
+            return copy.deepcopy(self._cached_storage)
         except (OSError, json.JSONDecodeError):
             return {"items": [], "attempts": []}
 
@@ -136,6 +153,8 @@ class JsonFilePracticeRepository(PracticeRepository):
                 temp_path = Path(temp_file.name)
 
             os.replace(temp_path, self._file_path)
+            self._cached_storage = copy.deepcopy(storage)
+            self._cached_mtime = self._file_path.stat().st_mtime
         finally:
             if temp_path is not None and temp_path.exists():
                 temp_path.unlink()
