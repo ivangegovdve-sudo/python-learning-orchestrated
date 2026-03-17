@@ -165,6 +165,16 @@ def run_interactive_ui_loop(
         output_fn("> Select an option:")
         choice = input_fn()
 
+        if choice.strip() == "3":
+            output_fn(
+                "\n> Are you sure you want to reset all your progress? "
+                "This cannot be undone. [y/N]:"
+            )
+            confirm = input_fn()
+            if confirm.strip().lower() not in ("y", "yes"):
+                output_fn("\nProgress reset cancelled.")
+                continue
+
         action_result = ui.handle_menu_choice(choice)
         output_fn("")
         for line in action_result.lines:
