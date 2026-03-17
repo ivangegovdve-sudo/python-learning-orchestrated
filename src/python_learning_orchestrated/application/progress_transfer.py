@@ -67,18 +67,23 @@ class ImportProgress:
             imported=snapshot,
         )
 
-        for item in merged_items:
-            self._repository.save_item(item)
+        # ⚡ Bolt: Batch saving the items instead of O(N) single save operations
+        self._repository.save_items(merged_items)
 
         existing_attempt_keys = {
             (attempt.item_id, attempt.timestamp)
             for attempt in self._repository.list_attempts()
         }
+        new_attempts = []
         for attempt in merged_attempts:
             key = (attempt.item_id, attempt.timestamp)
             if key not in existing_attempt_keys:
-                self._repository.record_attempt(attempt)
+                new_attempts.append(attempt)
                 existing_attempt_keys.add(key)
+
+        # ⚡ Bolt: Batch recording attempts
+        if new_attempts:
+            self._repository.record_attempts(new_attempts)
 
         return ProgressSnapshot(
             version=snapshot.version,

@@ -38,6 +38,14 @@ class JsonFilePracticeRepository(PracticeRepository):
         ]
 
     def save_item(self, item: LearningItem) -> None:
+        self.save_items([item])
+
+    # ⚡ Bolt: Batch optimization for item saves to avoid O(N) I/O operations per item
+    # This prevents O(N^2) save times during bulk imports
+    def save_items(self, new_items: list[LearningItem]) -> None:
+        if not new_items:
+            return
+
         storage = self._load_storage()
         raw_items = storage.get("items", [])
         items = []
@@ -46,7 +54,8 @@ class JsonFilePracticeRepository(PracticeRepository):
                 _item_from_dict(entry) for entry in raw_items if isinstance(entry, dict)
             ]
         by_id = {existing.id: existing for existing in items}
-        by_id[item.id] = item
+        for item in new_items:
+            by_id[item.id] = item
         storage["items"] = [_item_to_dict(entry) for entry in by_id.values()]
         self._save_storage(storage)
 
@@ -81,10 +90,18 @@ class JsonFilePracticeRepository(PracticeRepository):
         return attempts
 
     def record_attempt(self, attempt: Attempt) -> None:
+        self.record_attempts([attempt])
+
+    # ⚡ Bolt: Batch optimization for attempts to avoid O(N) I/O per attempt
+    def record_attempts(self, new_attempts: list[Attempt]) -> None:
+        if not new_attempts:
+            return
+
         storage = self._load_storage()
         raw_attempts = storage.get("attempts", [])
         attempts = raw_attempts if isinstance(raw_attempts, list) else []
-        attempts.append(_attempt_to_dict(attempt))
+        for attempt in new_attempts:
+            attempts.append(_attempt_to_dict(attempt))
         storage["attempts"] = attempts
         self._save_storage(storage)
 
