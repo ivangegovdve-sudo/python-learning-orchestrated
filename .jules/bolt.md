@@ -9,3 +9,7 @@
 ## 2025-02-24 - JSON File I/O N+1 Problem
 **Learning:** Sequential saving (e.g., `save_item` in a loop) in a JSON file-backed repository causes an N+1 performance bottleneck due to repeated full-file reads and writes.
 **Action:** When updating multiple records, introduce and use batch repository methods (e.g., `save_items`, `record_attempts`) to read once, update memory, and write once.
+
+## 2024-03-16 - Batch JSON File I/O Operations
+**Learning:** When using JSON file-backed repositories, iterating over items sequentially and calling `save_item` or `record_attempt` inside a loop leads to N+1 file read/write operations. This creates a significant performance bottleneck, especially when importing progress snapshots with numerous items and attempts.
+**Action:** Prefer batch processing methods (e.g., `save_items`, `record_attempts`) so file-backed adapters can load storage once, update it in memory, and write it back in a single pass.
