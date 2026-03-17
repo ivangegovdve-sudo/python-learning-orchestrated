@@ -145,8 +145,8 @@ def show_progress(
 
     lines = ["Progress by lesson:"]
     for lesson in learning_path.lessons:
-        status = "completed" if lesson.id in completed_ids else "pending"
-        lines.append(f"- {lesson.id}: {status}")
+        status_icon = "[x]" if lesson.id in completed_ids else "[ ]"
+        lines.append(f"{status_icon} {lesson.title}")
 
     return MenuActionResult(lines=lines)
 

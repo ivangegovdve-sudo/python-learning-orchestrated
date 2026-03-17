@@ -58,8 +58,8 @@ def test_show_progress_lists_completed_and_pending_lessons() -> None:
 
     assert result.lines == [
         "Progress by lesson:",
-        "- lesson-1: completed",
-        "- lesson-2: pending",
+        "[x] Variables",
+        "[ ] Loops",
     ]
 
 
