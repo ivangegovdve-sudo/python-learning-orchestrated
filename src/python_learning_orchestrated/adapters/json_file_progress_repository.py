@@ -42,6 +42,10 @@ class JsonFileProgressRepository(ProgressRepository):
         """Load all persisted progress payloads."""
         if not self._file_path.exists():
             return {}
+        if self._file_path.stat().st_size > 10 * 1024 * 1024:
+            raise ValueError(
+                f"Progress repository file {self._file_path} exceeds 10MB size limit"
+            )
 
         try:
             content = self._file_path.read_text(encoding="utf-8")

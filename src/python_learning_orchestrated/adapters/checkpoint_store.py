@@ -231,6 +231,10 @@ def _to_int(value: object, default: int) -> int:
 
 
 def _read_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    if path.stat().st_size > 10 * 1024 * 1024:
+        raise ValueError(f"Checkpoint file {path} exceeds 10MB size limit")
     parsed = json.loads(path.read_text(encoding="utf-8"))
     return parsed if isinstance(parsed, dict) else {}
 
