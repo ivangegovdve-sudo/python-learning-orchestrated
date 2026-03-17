@@ -23,6 +23,9 @@ class InMemoryPracticeRepository(PracticeRepository):
     def record_attempt(self, attempt: Attempt) -> None:
         self._attempts.append(attempt)
 
+    def record_attempts(self, attempts: list[Attempt]) -> None:
+        self._attempts.extend(attempts)
+
     def list_attempts(self) -> list[Attempt]:
         """Testing helper for verifying recorded attempts."""
         return [*self._attempts]

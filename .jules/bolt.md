@@ -5,3 +5,7 @@
 ## 2024-03-14 - Redundant Disk I/O on Idempotent Import
 **Learning:** During progress import (`ImportProgress.run`), checking equality before calling `repository.save_item()` significantly speeds up processing when most items are unchanged (idempotent imports). In JSON file-backed adapters, each `save_item` forces a full disk dump/sync, turning O(N) unchanged merges into extremely slow O(N) file rewrites.
 **Action:** Always check if a domain item actually mutated before persisting it in iterative loops. Fetch related data once per operation instead of inside loops or repeatedly.
+
+## 2025-02-24 - JSON File I/O N+1 Problem
+**Learning:** Sequential saving (e.g., `save_item` in a loop) in a JSON file-backed repository causes an N+1 performance bottleneck due to repeated full-file reads and writes.
+**Action:** When updating multiple records, introduce and use batch repository methods (e.g., `save_items`, `record_attempts`) to read once, update memory, and write once.
