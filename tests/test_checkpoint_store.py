@@ -67,3 +67,11 @@ def test_list_and_delete_checkpoints(tmp_path) -> None:
 
     remaining = store.list_checkpoints()
     assert [checkpoint.name for checkpoint in remaining] == ["Week 2"]
+
+
+def test_to_int_error_paths() -> None:
+    from python_learning_orchestrated.adapters.checkpoint_store import _to_int
+
+    assert _to_int("invalid", 42) == 42
+    assert _to_int("3.14", 42) == 42
+    assert _to_int("abc", 0) == 0
