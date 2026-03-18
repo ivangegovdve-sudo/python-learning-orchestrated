@@ -46,15 +46,20 @@ class JsonFilePracticeRepository(PracticeRepository):
 
         storage = self._load_storage()
         raw_items = storage.get("items", [])
-        existing_items = []
-        if isinstance(raw_items, list):
-            existing_items = [
-                _item_from_dict(entry) for entry in raw_items if isinstance(entry, dict)
-            ]
-        by_id = {existing.id: existing for existing in existing_items}
-        for item in items:
-            by_id[item.id] = item
-        storage["items"] = [_item_to_dict(entry) for entry in by_id.values()]
+        if not isinstance(raw_items, list):
+            raw_items = []
+
+        # ⚡ Bolt: Optimize by updating dicts in-place instead of O(N) deserialization
+        updates = {item.id: _item_to_dict(item) for item in items}
+
+        for i, entry in enumerate(raw_items):
+            if isinstance(entry, dict) and "id" in entry and entry["id"] in updates:
+                raw_items[i] = updates.pop(entry["id"])
+
+        for item_dict in updates.values():
+            raw_items.append(item_dict)
+
+        storage["items"] = raw_items
         self._save_storage(storage)
 
     def list_attempts(self) -> list[Attempt]:
