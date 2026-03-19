@@ -19,6 +19,7 @@ venv/
 .coverage
 
 # IDE / editor
+.vs/
 .vscode/
 .idea/
 *.swp
