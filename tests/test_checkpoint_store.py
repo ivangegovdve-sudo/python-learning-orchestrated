@@ -75,3 +75,22 @@ def test_to_int_error_paths() -> None:
     assert _to_int("invalid", 42) == 42
     assert _to_int("3.14", 42) == 42
     assert _to_int("abc", 0) == 0
+
+
+def test_default_checkpoint_directory() -> None:
+    from pathlib import Path
+    from unittest.mock import patch
+
+    from python_learning_orchestrated.adapters.checkpoint_store import (
+        default_checkpoint_directory,
+    )
+
+    with patch("pathlib.Path.home") as mock_home:
+        mock_home.return_value = Path("/mock/home/user")
+
+        expected_path = Path(
+            "/mock/home/user/.config/python-learning-orchestrated/checkpoints"
+        )
+        actual_path = default_checkpoint_directory()
+
+        assert actual_path == expected_path
