@@ -13,3 +13,6 @@
 ## 2024-03-16 - Batch JSON File I/O Operations
 **Learning:** When using JSON file-backed repositories, iterating over items sequentially and calling `save_item` or `record_attempt` inside a loop leads to N+1 file read/write operations. This creates a significant performance bottleneck, especially when importing progress snapshots with numerous items and attempts.
 **Action:** Prefer batch processing methods (e.g., `save_items`, `record_attempts`) so file-backed adapters can load storage once, update it in memory, and write it back in a single pass.
+## 2024-05-18 - Optimize element counting from an iterable based on a condition
+ **Learning:** Using `len([1 for item in iterable if condition])` natively in C (CPython list comprehensions) is ~25% faster than iterating over a generator expression `sum(1 for item in iterable if condition)`.
+ **Action:** For counting occurrences from an iterable, use list comprehension + len over a generator expression inside sum, particularly when memory is not an issue.
