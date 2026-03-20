@@ -223,7 +223,10 @@ def main(
         if args.checkpoint_command == "list":
             checkpoints = checkpoint_store.list_checkpoints()
             if not checkpoints:
-                output_fn("No checkpoints found. Use 'checkpoint create <name>' to create one.")
+                output_fn(
+                    "No checkpoints found. "
+                    "Use 'checkpoint create <name>' to create one."
+                )
                 return
             output_fn(f"Checkpoints ({len(checkpoints)}):")
             for checkpoint in checkpoints:
