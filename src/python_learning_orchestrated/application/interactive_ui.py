@@ -100,8 +100,9 @@ def progress_summary(
     """Return completed and total lesson counts for user."""
     completed_ids = _completed_lesson_ids(progress_service, user_id)
     total_count = len(learning_path.lessons)
-    completed_count = sum(
-        1 for lesson in learning_path.lessons if lesson.id in completed_ids
+    # ⚡ Bolt: Use len(list comp) over sum(generator) for Python 3.12+ performance
+    completed_count = len(
+        [1 for lesson in learning_path.lessons if lesson.id in completed_ids]
     )
     return completed_count, total_count
 
