@@ -73,5 +73,5 @@ def test_run_practice_session_prefers_due_then_new_and_persists_attempts() -> No
     assert items_by_id["review-1"].review_level == 2
     assert items_by_id["review-1"].due_at == fixed_now + timedelta(days=3)
     assert items_by_id["new-1"].status == "new"
-    assert "Activity review-1: due review" in io.lines
-    assert "Activity new-1: first new" in io.lines
+    assert "Activity: due review" in io.lines
+    assert "Activity: first new" in io.lines
