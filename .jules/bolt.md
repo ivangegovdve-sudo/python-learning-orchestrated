@@ -13,3 +13,7 @@
 ## 2024-03-16 - Batch JSON File I/O Operations
 **Learning:** When using JSON file-backed repositories, iterating over items sequentially and calling `save_item` or `record_attempt` inside a loop leads to N+1 file read/write operations. This creates a significant performance bottleneck, especially when importing progress snapshots with numerous items and attempts.
 **Action:** Prefer batch processing methods (e.g., `save_items`, `record_attempts`) so file-backed adapters can load storage once, update it in memory, and write it back in a single pass.
+
+## 2025-03-22 - Optimize JSON file-backed adapters with in-place dict updates
+**Learning:** Fully deserializing and reserializing stored records to domain models for batch write operations in JSON file-backed adapters causes a massive $O(N)$ CPU/memory penalty. Iterating through the large stored JSON payload to construct heavy domain model lists before mutating values is very inefficient compared to directly mutating the dictionary objects in place.
+**Action:** Always update raw dictionary entries directly in-place rather than instantiating entire domain models, mapping them back, and overwriting, significantly boosting serialization/write speeds.
