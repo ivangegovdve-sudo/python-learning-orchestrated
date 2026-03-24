@@ -105,13 +105,19 @@ class JsonFilePracticeRepository(PracticeRepository):
     def _load_storage(self) -> dict[str, object]:
         if not self._file_path.exists():
             return {"items": [], "attempts": []}
-        if self._file_path.stat().st_size > 10 * 1024 * 1024:
+        if not self._file_path.is_file():
             raise ValueError(
-                f"Practice repository file {self._file_path} exceeds 10MB size limit"
+                f"Practice repository path {self._file_path} is not a regular file"
             )
 
         try:
-            content = self._file_path.read_text(encoding="utf-8")
+            with open(self._file_path, encoding="utf-8") as f:
+                content = f.read(10 * 1024 * 1024 + 1)
+                if len(content) > 10 * 1024 * 1024:
+                    raise ValueError(
+                        f"Practice repository file {self._file_path} "
+                        "exceeds 10MB size limit"
+                    )
             if not content.strip():
                 return {"items": [], "attempts": []}
             parsed = json.loads(content)
