@@ -111,11 +111,12 @@ class JsonFilePracticeRepository(PracticeRepository):
             )
 
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 content = f.read(10 * 1024 * 1024 + 1)
                 if len(content) > 10 * 1024 * 1024:
                     raise ValueError(
-                        f"Practice repository file {self._file_path} exceeds 10MB size limit"
+                        f"Practice repository file {self._file_path} "
+                        "exceeds 10MB size limit"
                     )
             if not content.strip():
                 return {"items": [], "attempts": []}

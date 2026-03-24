@@ -235,7 +235,7 @@ def _read_json(path: Path) -> dict[str, object]:
         return {}
     if not path.is_file():
         raise ValueError(f"Checkpoint path {path} is not a regular file")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read(10 * 1024 * 1024 + 1)
         if len(content) > 10 * 1024 * 1024:
             raise ValueError(f"Checkpoint file {path} exceeds 10MB size limit")

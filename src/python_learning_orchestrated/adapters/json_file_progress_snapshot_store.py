@@ -41,11 +41,12 @@ class JsonFileProgressSnapshotStore(ProgressSnapshotStore):
                 f"Progress snapshot path {self._file_path} is not a regular file"
             )
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 content = f.read(10 * 1024 * 1024 + 1)
                 if len(content) > 10 * 1024 * 1024:
                     raise ValueError(
-                        f"Progress snapshot file {self._file_path} exceeds 10MB size limit"
+                        f"Progress snapshot file {self._file_path} "
+                        "exceeds 10MB size limit"
                     )
             parsed = json.loads(content)
         except (OSError, json.JSONDecodeError):
