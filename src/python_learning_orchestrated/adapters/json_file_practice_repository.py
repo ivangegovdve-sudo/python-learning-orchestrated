@@ -51,10 +51,14 @@ class JsonFilePracticeRepository(PracticeRepository):
 
         # ⚡ Bolt: Performance Optimization
         # Avoid O(N) fully deserializing and re-serializing all domain models.
-        # Instead, build a map of the raw JSON dictionary entries and update them in-place.
-        # Expected Impact: Reduces save_items time by ~90% for a repository with 10k items.
+        # Instead, build a map of the raw JSON dictionary entries and update
+        # them in-place.
+        # Expected Impact: Reduces save_items time by ~90% for a repository
+        # with 10k items.
         by_id: dict[str, dict[str, object]] = {
-            str(entry.get("id")): entry for entry in raw_items if isinstance(entry, dict)
+            str(entry.get("id")): entry
+            for entry in raw_items
+            if isinstance(entry, dict)
         }
         for item in items:
             by_id[str(item.id)] = _item_to_dict(item)
