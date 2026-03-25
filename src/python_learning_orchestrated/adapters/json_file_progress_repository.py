@@ -40,15 +40,17 @@ class JsonFileProgressRepository(ProgressRepository):
 
     def _load_storage(self) -> dict[str, LessonProgress]:
         """Load all persisted progress payloads."""
-        if not self._file_path.exists():
+        if not self._file_path.is_file():
             return {}
-        if self._file_path.stat().st_size > 10 * 1024 * 1024:
-            raise ValueError(
-                f"Progress repository file {self._file_path} exceeds 10MB size limit"
-            )
 
         try:
-            content = self._file_path.read_text(encoding="utf-8")
+            with self._file_path.open("r", encoding="utf-8") as f:
+                content = f.read(10 * 1024 * 1024 + 1)
+            if len(content) > 10 * 1024 * 1024:
+                raise ValueError(
+                    f"Progress repository file {self._file_path} "
+                    "exceeds 10MB size limit"
+                )
             if not content.strip():
                 return {}
 
