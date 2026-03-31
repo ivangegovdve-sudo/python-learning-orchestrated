@@ -5,3 +5,7 @@
 ## 2024-05-24 - CLI Output Scannability and Human-Readability
 **Learning:** In text-based CLI menus, using internal identifiers (like `lesson-1`) and verbose status strings (like `pending` or `completed`) makes lists hard to scan and feels too technical.
 **Action:** When displaying lists of items with states, use familiar visual symbols (like `[x]` vs `[ ]`) and human-readable titles (like "Variables") to improve scannability and create a more friendly, intuitive interface.
+
+## 2024-05-25 - Actionable Empty States
+**Learning:** In CLI applications, empty states (e.g., "No items found") can leave users at a dead end, unsure of what to do next.
+**Action:** Always provide actionable instructions or commands in empty state messages to guide the user on how to create the missing resource.
