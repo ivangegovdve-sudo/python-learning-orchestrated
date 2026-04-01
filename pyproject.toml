@@ -5,7 +5,9 @@ description = "Beginner Python learning app scaffold (architecture-first)."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "Project Maintainers" }]
-dependencies = []
+dependencies = [
+  "google-adk",
+]
 
 [project.scripts]
 python-learning = "python_learning_orchestrated.cli:main"

@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable
 from datetime import datetime
+import json
+from pathlib import Path
 
 from python_learning_orchestrated.adapters.checkpoint_store import CheckpointStore
 from python_learning_orchestrated.adapters.in_memory_practice_repository import (
@@ -34,6 +36,8 @@ from python_learning_orchestrated.application.progress_transfer import (
     ExportProgress,
     ImportProgress,
 )
+from python_learning_orchestrated.adk.roadmap import load_roadmap
+from python_learning_orchestrated.adk.workflow import LocalWorkflowEngine
 from python_learning_orchestrated.domain.learning_path import LearningPath, Lesson
 from python_learning_orchestrated.domain.practice import LearningItem
 from python_learning_orchestrated.ports.practice_repository import PracticeRepository
@@ -62,6 +66,8 @@ def _build_parser() -> argparse.ArgumentParser:
             "export-progress",
             "import-progress",
             "checkpoint",
+            "adk-roadmap",
+            "adk-run-next",
         ],
         help=(
             "Run interactive lesson menu, practice session, "
@@ -99,6 +105,17 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         help="Input file for import-progress snapshot JSON.",
+    )
+    parser.add_argument(
+        "--roadmap-file",
+        type=str,
+        default="docs/adk-roadmap.md",
+        help="Roadmap file used by ADK workflow commands.",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON for ADK commands.",
     )
     return parser
 
@@ -234,6 +251,30 @@ def main(
         raise SystemExit(
             "checkpoint requires 'create' or 'list' (e.g. checkpoint list)"
         )
+
+    if args.command == "adk-roadmap":
+        payload = load_roadmap(args.roadmap_file).to_dict()
+        if args.json:
+            output_fn(json.dumps(payload))
+        else:
+            output_fn(payload["title"])
+            for task in payload["tasks"]:
+                output_fn(f"- {task['id']}: {task['status']}")
+        return
+
+    if args.command == "adk-run-next":
+        engine = LocalWorkflowEngine(
+            repo_name="python-learning-orchestrated",
+            base_dir=Path.cwd(),
+            roadmap_path=Path(args.roadmap_file),
+            history_path=Path("data/adk_runs.json"),
+        )
+        payload = engine.run_next()
+        if args.json:
+            output_fn(json.dumps(payload))
+        else:
+            output_fn(payload.get("summary", payload.get("reason", "No action taken.")))
+        return
 
     user_id = "demo-user"
     progress_repository = _build_repository(args.progress_file)
