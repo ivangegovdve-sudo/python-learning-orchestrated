@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import patch
 
-from python_learning_orchestrated.adapters.checkpoint_store import CheckpointStore
+from python_learning_orchestrated.adapters.checkpoint_store import (
+    CheckpointStore,
+    _to_int,
+    default_checkpoint_directory,
+)
 from python_learning_orchestrated.domain.practice import Attempt, LearningItem
 from python_learning_orchestrated.domain.practice_progress import ProgressSnapshot
 
@@ -70,8 +76,13 @@ def test_list_and_delete_checkpoints(tmp_path) -> None:
 
 
 def test_to_int_error_paths() -> None:
-    from python_learning_orchestrated.adapters.checkpoint_store import _to_int
-
     assert _to_int("invalid", 42) == 42
     assert _to_int("3.14", 42) == 42
     assert _to_int("abc", 0) == 0
+
+
+def test_default_checkpoint_directory() -> None:
+    with patch.object(Path, "home", return_value=Path("/mocked/home")):
+        assert default_checkpoint_directory() == Path(
+            "/mocked/home/.config/python-learning-orchestrated/checkpoints"
+        )
