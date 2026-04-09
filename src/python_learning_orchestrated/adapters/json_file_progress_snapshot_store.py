@@ -36,12 +36,17 @@ class JsonFileProgressSnapshotStore(ProgressSnapshotStore):
     def _load_payload(self) -> dict[str, object]:
         if not self._file_path.exists():
             return {}
-        if self._file_path.stat().st_size > 10 * 1024 * 1024:
-            raise ValueError(
-                f"Progress snapshot file {self._file_path} exceeds 10MB size limit"
-            )
+        if not self._file_path.is_file():
+            return {}
         try:
-            parsed = json.loads(self._file_path.read_text(encoding="utf-8"))
+            with self._file_path.open("r", encoding="utf-8") as f:
+                content = f.read(10 * 1024 * 1024 + 1)
+                if len(content) > 10 * 1024 * 1024:
+                    raise ValueError(
+                        "Progress snapshot file "
+                        f"{self._file_path} exceeds 10MB size limit"
+                    )
+                parsed = json.loads(content)
         except (OSError, json.JSONDecodeError):
             return {}
         return parsed if isinstance(parsed, dict) else {}
