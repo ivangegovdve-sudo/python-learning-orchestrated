@@ -91,6 +91,15 @@ def test_cli_export_and_import_progress_commands(tmp_path, capsys) -> None:
     assert len(session_payload["attempts"]) == 1
 
 
+def test_cli_checkpoint_list_empty(capsys) -> None:
+    main(["checkpoint", "list"])
+    output = capsys.readouterr().out
+    assert (
+        "No checkpoints found. Use 'checkpoint create <name>' to save your progress."
+        in output
+    )
+
+
 def test_cli_checkpoint_create_and_list(tmp_path, capsys, monkeypatch) -> None:
     session_file = tmp_path / "session.json"
     checkpoint_dir = tmp_path / "checkpoints"
