@@ -17,8 +17,6 @@ Out of scope for this feature version:
   transport/protocol concerns, or cross-repository transaction guarantees.
 """
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from datetime import datetime
 
