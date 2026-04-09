@@ -216,3 +216,19 @@ def test_cli_checkpoint_create_fails_on_existing_name(
         )
     else:
         raise AssertionError("Expected SystemExit for duplicate checkpoint name")
+
+
+def test_cli_checkpoint_list_empty(tmp_path, capsys, monkeypatch) -> None:
+    checkpoint_dir = tmp_path / "checkpoints"
+
+    checkpoint_store_class = cli_module.CheckpointStore
+    monkeypatch.setattr(
+        cli_module,
+        "CheckpointStore",
+        lambda: checkpoint_store_class(checkpoint_dir),
+    )
+
+    main(["checkpoint", "list"])
+    list_output = capsys.readouterr().out
+    assert "No checkpoints found." in list_output
+    assert "Use 'checkpoint create <name>' to create one." in list_output
