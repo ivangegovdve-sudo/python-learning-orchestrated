@@ -44,8 +44,8 @@ def test_cli_session_command_runs_practice_loop(capsys) -> None:
 
     output = capsys.readouterr().out
     assert "Starting practice session." in output
-    assert "Activity variables-review" in output
-    assert "Recorded: correct for variables-review." in output
+    assert "Q: What is a variable in Python?" in output
+    assert "✓ Recorded: correct." in output
     assert "Session ended by user." in output
 
 

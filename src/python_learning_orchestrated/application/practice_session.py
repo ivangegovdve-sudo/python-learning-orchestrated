@@ -44,7 +44,7 @@ class RunPracticeSession:
                 )
                 return
 
-            self._io.write_line(f"Activity {next_item.id}: {next_item.prompt}")
+            self._io.write_line(f"Q: {next_item.prompt}")
             outcome = self._read_valid_outcome(next_item)
             if outcome is None:
                 self._io.write_line("Session ended by user.")
@@ -58,7 +58,7 @@ class RunPracticeSession:
             if updated_item != next_item:
                 self._repository.save_item(updated_item)
 
-            self._io.write_line(f"Recorded: {outcome} for {next_item.id}.")
+            self._io.write_line(f"✓ Recorded: {outcome}.")
 
     def _read_valid_outcome(self, item: LearningItem) -> AttemptOutcome | None:
         while True:
