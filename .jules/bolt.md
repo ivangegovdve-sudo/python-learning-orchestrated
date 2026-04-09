@@ -13,3 +13,7 @@
 ## 2024-03-16 - Batch JSON File I/O Operations
 **Learning:** When using JSON file-backed repositories, iterating over items sequentially and calling `save_item` or `record_attempt` inside a loop leads to N+1 file read/write operations. This creates a significant performance bottleneck, especially when importing progress snapshots with numerous items and attempts.
 **Action:** Prefer batch processing methods (e.g., `save_items`, `record_attempts`) so file-backed adapters can load storage once, update it in memory, and write it back in a single pass.
+
+## 2025-03-17 - File Invalidation Memory Leak and Mutations
+**Learning:** Caching mutable structures (like JSON dictionaries) in memory directly exposes them to unintended mutation from other application code. When building repository caches, returning a reference instead of a deep copy causes silent divergence between the database (file) and the application state. Saving a failed write to the cache also causes the same state divergence.
+**Action:** When caching JSON payloads or dictionary states in a repository adapter, always return `copy.deepcopy` to prevent leakage. Only update the cache *after* successfully persisting the change to the underlying store (file/DB), and use `st_mtime` to invalidate the cache if the store is modified externally.
